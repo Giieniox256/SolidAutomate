@@ -6,6 +6,19 @@ theme:
     - scheme: default
       primary: blue
 
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_signature: true
+            docstring_style: google
+
 nav:
   - Home: index.md
-  - src: src/
+  - App:
+    - core: core/index.md
+    - gui: gui/index.md
+    - utils: utils/index.md
