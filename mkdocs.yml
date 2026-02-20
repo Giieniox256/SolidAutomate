@@ -11,6 +11,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
+          paths: [src]
           options:
             show_source: true
             show_signature: true
@@ -19,6 +20,6 @@ plugins:
 nav:
   - Home: index.md
   - App:
-    - core: core/index.md
-    - gui: gui/index.md
-    - utils: utils/index.md
+    - CORE: core/index.md
+    - GUI: gui/index.md
+    - UTILS: utils/index.md

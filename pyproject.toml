@@ -15,7 +15,15 @@ mkdocstrings-python = "2.0.3"
 mkdocstrings = "1.0.3"
 pylint = "4.0.5"
 pyside6 = "6.10.2"
+yapf = "0.43.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.yapf]
+COLUMN_LIMIT = 120
+COALESCE_BRACKETS = true
+DEDENT_CLOSING_BRACKETS = true
+SPLIT_ALL_TOP_LEVEL_COMMA_SEPARATED_VALUES = false
+SPLIT_BEFORE_NAMED_ASSIGNS = false

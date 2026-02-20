@@ -1,2 +1,3 @@
 # GUI
-::: src.solid_automate.gui
+
+::: solid_automate.gui

@@ -995,7 +995,22 @@ files = [
 [package.extras]
 watchmedo = ["PyYAML (>=3.10)"]
 
+[[package]]
+name = "yapf"
+version = "0.43.0"
+description = "A formatter for Python code"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "yapf-0.43.0-py3-none-any.whl", hash = "sha256:224faffbc39c428cb095818cf6ef5511fdab6f7430a10783fdfb292ccf2852ca"},
+    {file = "yapf-0.43.0.tar.gz", hash = "sha256:00d3aa24bfedff9420b2e0d5d9f5ab6d9d4268e72afbf59bb3fa542781d5218e"},
+]
+
+[package.dependencies]
+platformdirs = ">=3.5.1"
+
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<=3.14"
-content-hash = "6977d148e6e0ab402d5d056849307aff4778d8b3b46e7db00d1a370a3be09547"
+content-hash = "8752109d990587ca5b7c0eb8796e9cba0edb06b94b1610a9f376ecff502668db"
