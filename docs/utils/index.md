@@ -1,3 +1,3 @@
 # Utils
 
-::: src.solid_automate.utils
+::: solid_automate.utils

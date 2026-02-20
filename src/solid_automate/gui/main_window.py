@@ -18,3 +18,6 @@ class MainWindow(QMainWindow):
 
         self.ui_main = loader.load(ui_main_file)
         self.setCentralWidget(self.ui_main)
+
+        self.setWindowTitle("SolidAutomate")
+
