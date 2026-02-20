@@ -1,2 +1,2 @@
 # Core
-:::src.solid_automate
+:::src.solid_automate.core

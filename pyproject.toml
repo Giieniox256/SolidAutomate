@@ -13,6 +13,8 @@ mkdocs = "1.6.1"
 mkdocs-material = "9.7.2"
 mkdocstrings-python = "2.0.3"
 mkdocstrings = "1.0.3"
+pylint = "4.0.5"
+pyside6 = "6.10.2"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
