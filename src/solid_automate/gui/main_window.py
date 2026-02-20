@@ -39,14 +39,17 @@ class MainWindow(QMainWindow):
 
         try:
             self.init_button_functions()
-        except Exception as e:
+        except:
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Critical)
             msg.setWindowTitle("Error!")
             msg.setText("Error while loading application. Some functionality may not work.")
             msg.exec()
 
-    def init_button_functions(self):
+    def init_button_functions(self) -> None:
+        """
+        Functions connect button object with functions
+        """
         # connect widgets with function
         if self.btn_connect_solidW is not None:
             self.btn_connect_solidW.clicked.connect(self.f_connect_solid)
@@ -64,22 +67,29 @@ class MainWindow(QMainWindow):
             self.progress_bar.setValue(0)
 
     def f_connect_solid(self):
+        """Function to connect with solidworks"""
         raise NotImplementedError("Connection not implemented")
 
     def f_disconnect_solid(self):
+        """Function to disconnect solidworks"""
         raise NotImplementedError("Disconnection not implemented")
 
     def f_settings(self):
+        """Function open settings page"""
         raise NotImplementedError("Settings not implemented")
 
     def f_select_dir(self):
+        """Function open select dir page to choose a directory"""
         raise NotImplementedError("Selection of Dir not implemented")
 
     def f_start_job(self):
+        """Function start job: selected file will be generated"""
         raise NotImplementedError("Starting job not implemented")
 
     def f_stop_job(self):
+        """Function stop actual preparing docs job"""
         raise NotImplementedError("Stopping job not implemented")
 
     def f_set_label_actual_path(self, actual_path):
+        """Function set label actual path"""
         raise NotImplementedError("Setting label not implemented")
