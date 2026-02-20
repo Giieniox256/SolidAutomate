@@ -29,4 +29,4 @@ SPLIT_ALL_TOP_LEVEL_COMMA_SEPARATED_VALUES = false
 SPLIT_BEFORE_NAMED_ASSIGNS = false
 
 [tool.pylint]
-disable = ["E0611","R0902"]
+disable = ["E0611","R0902", "I1101"]
