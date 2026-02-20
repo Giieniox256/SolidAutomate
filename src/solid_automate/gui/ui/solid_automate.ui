@@ -209,7 +209,7 @@
               </widget>
              </item>
              <item alignment="Qt::AlignmentFlag::AlignRight">
-              <widget class="QPushButton" name="btn_slect_dir">
+              <widget class="QPushButton" name="btn_select_dir">
                <property name="text">
                 <string>Select Directory</string>
                </property>

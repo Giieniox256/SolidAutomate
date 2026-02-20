@@ -5,7 +5,14 @@ import sys
 from pathlib import Path
 
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import QMainWindow, QPushButton, QMessageBox, QProgressBar, QLabel, QTableWidget
+from PySide6.QtWidgets import (
+    QMainWindow,
+    QPushButton,
+    QMessageBox,
+    QProgressBar,
+    QLabel,
+    QTableWidget,
+)
 
 
 class MainWindow(QMainWindow):
@@ -27,8 +34,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("SolidAutomate")
 
         # assign widget objects with variables
-        self.btn_connect_solidW = self.ui_main.findChild(QPushButton, 'btn_connect_solid')
-        self.btn_disconnect_solidW = self.ui_main.findChild(QPushButton, 'btn_disconnect_solid')
+        self.btn_connect_solidworks = self.ui_main.findChild(QPushButton, 'btn_connect_solid')
+        self.btn_disconnect_solidworks = self.ui_main.findChild(QPushButton, 'btn_disconnect_solid')
         self.btn_settings = self.ui_main.findChild(QPushButton, 'btn_settings')
         self.btn_select_dir = self.ui_main.findChild(QPushButton, 'btn_select_dir')
         self.btn_start_job = self.ui_main.findChild(QPushButton, 'btn_start_job')
@@ -39,7 +46,7 @@ class MainWindow(QMainWindow):
 
         try:
             self.init_button_functions()
-        except:
+        except RuntimeError:
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Critical)
             msg.setWindowTitle("Error!")
@@ -51,10 +58,10 @@ class MainWindow(QMainWindow):
         Functions connect button object with functions
         """
         # connect widgets with function
-        if self.btn_connect_solidW is not None:
-            self.btn_connect_solidW.clicked.connect(self.f_connect_solid)
-        if self.btn_disconnect_solidW is not None:
-            self.btn_disconnect_solidW.clicked.connect(self.f_disconnect_solid)
+        if self.btn_connect_solidworks is not None:
+            self.btn_connect_solidworks.clicked.connect(self.f_connect_solid)
+        if self.btn_disconnect_solidworks is not None:
+            self.btn_disconnect_solidworks.clicked.connect(self.f_disconnect_solid)
         if self.btn_settings is not None:
             self.btn_settings.clicked.connect(self.f_settings)
         if self.btn_select_dir is not None:
