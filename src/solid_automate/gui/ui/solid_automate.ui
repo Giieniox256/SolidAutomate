@@ -238,21 +238,21 @@
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QCheckBox" name="checkBox_2">
+           <widget class="QCheckBox" name="check_box_pdf">
             <property name="text">
              <string>PDF</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox">
+           <widget class="QCheckBox" name="check_box_step">
             <property name="text">
              <string>STEP</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_3">
+           <widget class="QCheckBox" name="check_box_dxf">
             <property name="text">
              <string>DXF</string>
             </property>
@@ -271,7 +271,7 @@
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
-           <widget class="QPushButton" name="pushButton_4">
+           <widget class="QPushButton" name="btn_start_job">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -284,7 +284,7 @@
            </widget>
           </item>
           <item alignment="Qt::AlignmentFlag::AlignRight">
-           <widget class="QPushButton" name="pushButton_5">
+           <widget class="QPushButton" name="btn_stop_job">
             <property name="text">
              <string>Stop Job</string>
             </property>
@@ -310,7 +310,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QProgressBar" name="progressBar">
+           <widget class="QProgressBar" name="progress_bar">
             <property name="value">
              <number>24</number>
             </property>
@@ -345,7 +345,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>33</height>
+     <height>24</height>
     </rect>
    </property>
   </widget>
