@@ -16,6 +16,7 @@ mkdocstrings = "1.0.3"
 pylint = "4.0.5"
 pyside6 = "6.10.2"
 yapf = "0.43.0"
+pyright = "1.1.408"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

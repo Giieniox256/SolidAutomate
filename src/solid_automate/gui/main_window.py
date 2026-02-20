@@ -73,30 +73,30 @@ class MainWindow(QMainWindow):
         if self.progress_bar is not None:
             self.progress_bar.setValue(0)
 
-    def f_connect_solid(self):
+    def f_connect_solid(self) -> None:
         """Function to connect with solidworks"""
         raise NotImplementedError("Connection not implemented")
 
-    def f_disconnect_solid(self):
+    def f_disconnect_solid(self) -> None:
         """Function to disconnect solidworks"""
         raise NotImplementedError("Disconnection not implemented")
 
-    def f_settings(self):
+    def f_settings(self) -> None:
         """Function open settings page"""
         raise NotImplementedError("Settings not implemented")
 
-    def f_select_dir(self):
+    def f_select_dir(self) -> None:
         """Function open select dir page to choose a directory"""
         raise NotImplementedError("Selection of Dir not implemented")
 
-    def f_start_job(self):
+    def f_start_job(self) -> None:
         """Function start job: selected file will be generated"""
         raise NotImplementedError("Starting job not implemented")
 
-    def f_stop_job(self):
+    def f_stop_job(self) -> None:
         """Function stop actual preparing docs job"""
         raise NotImplementedError("Stopping job not implemented")
 
-    def f_set_label_actual_path(self, actual_path):
+    def f_set_label_actual_path(self, actual_path) -> None:
         """Function set label actual path"""
         raise NotImplementedError("Setting label not implemented")
