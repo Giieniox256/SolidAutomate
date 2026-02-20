@@ -1,0 +1,11 @@
+site_name: SolidAutomate
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+
+nav:
+  - Home: index.md
+  - src: src/
