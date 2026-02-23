@@ -3,7 +3,9 @@ main window class loading ui and connect function with manager
 """
 import sys
 from pathlib import Path
+from typing import Optional
 
+from PySide6.QtCore import QObject, QThread, Signal, Slot
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -11,8 +13,11 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QProgressBar,
     QLabel,
-    QTableWidget,
+    QTableWidget, QApplication,
 )
+from isapi.threaded_extension import WorkerThread
+
+from solid_automate.core.solidworks_service import SolidWorksService
 
 
 class MainWindow(QMainWindow):
@@ -25,6 +30,10 @@ class MainWindow(QMainWindow):
             raise Exception("Setup path if app is packed")
         else:
             ui_main_file = Path(__file__).resolve().parent / "ui" / "solid_automate.ui"
+
+        # load manager object
+        self.sw_service = SolidWorksService()
+        self.worker_thread: Optional[QThread] = None
 
         # load ui from .ui
         self.ui_main = loader.load(ui_main_file)
@@ -43,6 +52,7 @@ class MainWindow(QMainWindow):
         self.progress_bar = self.ui_main.findChild(QProgressBar, 'progress_bar')
         self.lbl_actual_path = self.ui_main.findChild(QLabel, 'lbl_actual_path')
         self.tb_main = self.ui_main.findChild(QTableWidget, 'tb_main')
+        self.status_label = self.ui_main.findChild(QLabel, 'status_label')
 
         try:
             self.init_button_functions()
@@ -75,11 +85,26 @@ class MainWindow(QMainWindow):
 
     def f_connect_solid(self) -> None:
         """Function to connect with solidworks"""
-        raise NotImplementedError("Connection not implemented")
+        if self.worker_thread and self.worker_thread.isRunning():
+            self.worker_thread.quit()
+            self.worker_thread.wait(3000)
+
+        self.worker = ConnectWorker(self.sw_service)
+        self.worker_thread = QThread()
+        self.worker.moveToThread(self.worker_thread)
+        self.worker.status_update.connect(self.status_label.setText)
+        self.worker.finished.connect(self.worker_thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker_thread.finished.connect(self.worker_thread.deleteLater)
+
+        # run
+        self.worker_thread.started.connect(self.worker.run)
+        self.worker_thread.start()
 
     def f_disconnect_solid(self) -> None:
         """Function to disconnect solidworks"""
-        raise NotImplementedError("Disconnection not implemented")
+        self.sw_service.disconnect()
+        self.status_label.setText("Disconnected...")
 
     def f_settings(self) -> None:
         """Function open settings page"""
@@ -100,3 +125,23 @@ class MainWindow(QMainWindow):
     def f_set_label_actual_path(self, actual_path) -> None:
         """Function set label actual path"""
         raise NotImplementedError("Setting label not implemented")
+
+
+class ConnectWorker(QObject):
+    status_update = Signal(str)
+    finished = Signal(bool)
+
+    def __init__(self, sw_service):
+        super().__init__()
+        self.sw_service = sw_service
+
+    @Slot()
+    def run(self):
+        try:
+            self.status_update.emit("Connecting...")
+            self.sw_service.connect()
+            self.status_update.emit("Connected")
+            self.finished.emit(True)
+        except Exception as e:
+            self.status_update.emit(f"Error: {e}")
+            self.finished.emit(False)
