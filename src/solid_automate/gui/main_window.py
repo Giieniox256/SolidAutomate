@@ -13,9 +13,8 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QProgressBar,
     QLabel,
-    QTableWidget, QApplication,
+    QTableWidget,
 )
-from isapi.threaded_extension import WorkerThread
 
 from solid_automate.core.solidworks_service import SolidWorksService
 
