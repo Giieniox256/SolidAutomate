@@ -91,6 +91,13 @@
            <widget class="QWidget" name="buttons_connection_widget" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <item>
+              <widget class="QLabel" name="status_label">
+               <property name="text">
+                <string>Disconnected...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="btn_connect_solid">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -345,7 +352,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>24</height>
+     <height>33</height>
     </rect>
    </property>
   </widget>
