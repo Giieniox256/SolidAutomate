@@ -5,7 +5,14 @@ import sys
 from pathlib import Path
 
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import QMainWindow, QPushButton, QMessageBox, QProgressBar, QLabel, QTableWidget
+from PySide6.QtWidgets import (
+    QMainWindow,
+    QPushButton,
+    QMessageBox,
+    QProgressBar,
+    QLabel,
+    QTableWidget,
+)
 
 
 class MainWindow(QMainWindow):
@@ -27,8 +34,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("SolidAutomate")
 
         # assign widget objects with variables
-        self.btn_connect_solidW = self.ui_main.findChild(QPushButton, 'btn_connect_solid')
-        self.btn_disconnect_solidW = self.ui_main.findChild(QPushButton, 'btn_disconnect_solid')
+        self.btn_connect_solidworks = self.ui_main.findChild(QPushButton, 'btn_connect_solid')
+        self.btn_disconnect_solidworks = self.ui_main.findChild(QPushButton, 'btn_disconnect_solid')
         self.btn_settings = self.ui_main.findChild(QPushButton, 'btn_settings')
         self.btn_select_dir = self.ui_main.findChild(QPushButton, 'btn_select_dir')
         self.btn_start_job = self.ui_main.findChild(QPushButton, 'btn_start_job')
@@ -39,19 +46,22 @@ class MainWindow(QMainWindow):
 
         try:
             self.init_button_functions()
-        except Exception as e:
+        except RuntimeError:
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Critical)
             msg.setWindowTitle("Error!")
             msg.setText("Error while loading application. Some functionality may not work.")
             msg.exec()
 
-    def init_button_functions(self):
+    def init_button_functions(self) -> None:
+        """
+        Functions connect button object with functions
+        """
         # connect widgets with function
-        if self.btn_connect_solidW is not None:
-            self.btn_connect_solidW.clicked.connect(self.f_connect_solid)
-        if self.btn_disconnect_solidW is not None:
-            self.btn_disconnect_solidW.clicked.connect(self.f_disconnect_solid)
+        if self.btn_connect_solidworks is not None:
+            self.btn_connect_solidworks.clicked.connect(self.f_connect_solid)
+        if self.btn_disconnect_solidworks is not None:
+            self.btn_disconnect_solidworks.clicked.connect(self.f_disconnect_solid)
         if self.btn_settings is not None:
             self.btn_settings.clicked.connect(self.f_settings)
         if self.btn_select_dir is not None:
@@ -63,23 +73,30 @@ class MainWindow(QMainWindow):
         if self.progress_bar is not None:
             self.progress_bar.setValue(0)
 
-    def f_connect_solid(self):
+    def f_connect_solid(self) -> None:
+        """Function to connect with solidworks"""
         raise NotImplementedError("Connection not implemented")
 
-    def f_disconnect_solid(self):
+    def f_disconnect_solid(self) -> None:
+        """Function to disconnect solidworks"""
         raise NotImplementedError("Disconnection not implemented")
 
-    def f_settings(self):
+    def f_settings(self) -> None:
+        """Function open settings page"""
         raise NotImplementedError("Settings not implemented")
 
-    def f_select_dir(self):
+    def f_select_dir(self) -> None:
+        """Function open select dir page to choose a directory"""
         raise NotImplementedError("Selection of Dir not implemented")
 
-    def f_start_job(self):
+    def f_start_job(self) -> None:
+        """Function start job: selected file will be generated"""
         raise NotImplementedError("Starting job not implemented")
 
-    def f_stop_job(self):
+    def f_stop_job(self) -> None:
+        """Function stop actual preparing docs job"""
         raise NotImplementedError("Stopping job not implemented")
 
-    def f_set_label_actual_path(self, actual_path):
+    def f_set_label_actual_path(self, actual_path) -> None:
+        """Function set label actual path"""
         raise NotImplementedError("Setting label not implemented")
