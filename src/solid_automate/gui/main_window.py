@@ -1,11 +1,11 @@
 """
 main window class loading ui and connect function with manager
 """
+import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
-from PySide6.QtCore import QObject, QThread, Signal, Slot
+from PySide6.QtCore import QObject, Signal, Slot, QThread
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -18,9 +18,14 @@ from PySide6.QtWidgets import (
 
 from solid_automate.core.solidworks_service import SolidWorksService
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 
 class MainWindow(QMainWindow):
     """Main window class"""
+    request_connect = Signal()
+    request_disconnect = Signal()
 
     def __init__(self):
         super().__init__()
@@ -30,13 +35,17 @@ class MainWindow(QMainWindow):
         else:
             ui_main_file = Path(__file__).resolve().parent / "ui" / "solid_automate.ui"
 
-        # load manager object
-        self.sw_service = SolidWorksService()
-        self.worker_thread: Optional[QThread] = None
-
         # load ui from .ui
         self.ui_main = loader.load(ui_main_file)
         self.setCentralWidget(self.ui_main)
+
+        # load other tools
+        self.thread = QThread()
+        self.worker = SolidWorker()
+        self.worker.moveToThread(self.thread)
+        self.request_connect.connect(self.worker.connect_solidworks)
+
+        self.thread.start()
 
         # setup tile
         self.setWindowTitle("SolidAutomate")
@@ -64,7 +73,7 @@ class MainWindow(QMainWindow):
 
     def init_button_functions(self) -> None:
         """
-        Functions connect button object with functions
+        Functions connect a button object with functions
         """
         # connect widgets with function
         if self.btn_connect_solidworks is not None:
@@ -84,25 +93,13 @@ class MainWindow(QMainWindow):
 
     def f_connect_solid(self) -> None:
         """Function to connect with solidworks"""
-        if self.worker_thread and self.worker_thread.isRunning():
-            self.worker_thread.quit()
-            self.worker_thread.wait(3000)
-
-        self.worker = ConnectWorker(self.sw_service)
-        self.worker_thread = QThread()
-        self.worker.moveToThread(self.worker_thread)
-        self.worker.status_update.connect(self.status_label.setText)
-        self.worker.finished.connect(self.worker_thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.worker_thread.finished.connect(self.worker_thread.deleteLater)
-
-        # run
-        self.worker_thread.started.connect(self.worker.run)
-        self.worker_thread.start()
+        self.status_label.setText("Connecting...")
+        self.request_connect.emit()
+        self.status_label.setText("Connected")
 
     def f_disconnect_solid(self) -> None:
         """Function to disconnect solidworks"""
-        self.sw_service.disconnect()
+        self.request_disconnect.emit()
         self.status_label.setText("Disconnected...")
 
     def f_settings(self) -> None:
@@ -126,21 +123,36 @@ class MainWindow(QMainWindow):
         raise NotImplementedError("Setting label not implemented")
 
 
-class ConnectWorker(QObject):
-    status_update = Signal(str)
-    finished = Signal(bool)
+class SolidWorker(QObject):
+    connected = Signal()
+    saved = Signal()
+    settings = Signal()
+    select_dir = Signal()
+    error = Signal()
+    message = Signal()
 
-    def __init__(self, sw_service):
+    def __init__(self):
         super().__init__()
-        self.sw_service = sw_service
+        self.sw = SolidWorksService()
 
     @Slot()
-    def run(self):
+    def connect_solidworks(self):
+        """Function connects solidworks"""
         try:
-            self.status_update.emit("Connecting...")
-            self.sw_service.connect()
-            self.status_update.emit("Connected")
-            self.finished.emit(True)
+            self.sw.connect()
         except Exception as e:
-            self.status_update.emit(f"Error: {e}")
-            self.finished.emit(False)
+            self.error.emit(e)
+
+    @Slot()
+    def open_part(self, path):
+        try:
+            result = self.sw.open_part(path)
+            self.message.emit(result)
+        except Exception as e:
+            self.error.emit(e)
+
+    @Slot()
+    def disconnect_solidworks(self):
+        """Function disconnects solidworks"""
+        self.sw.shutdown()
+
