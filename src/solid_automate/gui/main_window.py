@@ -5,7 +5,7 @@ import logging
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Signal, Slot, QThread
+from PySide6.QtCore import QObject, Signal, Slot, QThread, Qt
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QProgressBar,
     QLabel,
-    QTableWidget,
+    QTableWidget, QFileDialog,
 )
 
 from solid_automate.core.solidworks_service import SolidWorksService
@@ -44,8 +44,10 @@ class MainWindow(QMainWindow):
         self.worker = SolidWorker()
         self.worker.moveToThread(self.thread)
         self.request_connect.connect(self.worker.connect_solidworks)
-
+        self.request_disconnect.connect(self.worker.disconnect_solidworks)
         self.thread.start()
+
+        self.selected_dir = ""
 
         # setup tile
         self.setWindowTitle("SolidAutomate")
@@ -58,7 +60,7 @@ class MainWindow(QMainWindow):
         self.btn_start_job = self.ui_main.findChild(QPushButton, 'btn_start_job')
         self.btn_stop_job = self.ui_main.findChild(QPushButton, 'btn_stop_job')
         self.progress_bar = self.ui_main.findChild(QProgressBar, 'progress_bar')
-        self.lbl_actual_path = self.ui_main.findChild(QLabel, 'lbl_actual_path')
+        self.lbl_actual_path = self.ui_main.findChild(QLabel, 'lb_actual_path')
         self.tb_main = self.ui_main.findChild(QTableWidget, 'tb_main')
         self.status_label = self.ui_main.findChild(QLabel, 'status_label')
 
@@ -108,7 +110,10 @@ class MainWindow(QMainWindow):
 
     def f_select_dir(self) -> None:
         """Function open select dir page to choose a directory"""
-        raise NotImplementedError("Selection of Dir not implemented")
+        self.selected_dir = QFileDialog.getExistingDirectory(self, "Select Directory")
+        if self.selected_dir != "":
+            display_text = f"{"/".join(self.selected_dir.split("/")[:2])}/.../{"/".join(self.selected_dir.split("/")[-2:])}"
+            self.lbl_actual_path.setText(display_text)
 
     def f_start_job(self) -> None:
         """Function start job: selected file will be generated"""
@@ -155,4 +160,3 @@ class SolidWorker(QObject):
     def disconnect_solidworks(self):
         """Function disconnects solidworks"""
         self.sw.shutdown()
-
