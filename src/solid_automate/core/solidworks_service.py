@@ -1,47 +1,59 @@
+import logging
+
 import pythoncom
 import win32com.client
-from PySide6.QtCore import QObject, Signal
 
 
-class SolidWorksService(QObject):
-    connected = Signal()
-    disconnected = Signal()
-    error = Signal()
-
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-        return cls._instance
+class SolidWorksService:
 
     def __init__(self):
-        super().__init__()
-
-        if hasattr(self, "initialized"):
-            return
-
-        self.initialized = True
         self.sw = None
+        self.com_initialized = False
+
+    def initialize(self):
+        if not self.com_initialized:
+            pythoncom.CoInitialize()
+            self.com_initialized = True
+
+    def shutdown(self):
+        if self.sw:
+            self.sw = None
+        if self.com_initialized:
+            pythoncom.CoUninitialize()
+            self.com_initialized = False
 
     def connect(self):
-        if self.sw:
-            self.connected.emit()
-            return
-        try:
-            pythoncom.CoInitialize()
+        self.initialize()
 
+        if self.sw:
+            return True
+
+        try:
             try:
                 self.sw = win32com.client.GetActiveObject("SldWorks.Application")
             except:
                 self.sw = win32com.client.Dispatch("SldWorks.Application")
-
             self.sw.Visible = True
-            self.connected.emit()
+            return True
         except Exception as e:
-            self.error.emit(str(e))
+            print(f"Connect error {e}")  # optional error
+            return False
 
     def disconnect(self):
-        self.sw = None
-        pythoncom.CoUninitialize()
-        self.disconnected.emit()
+        """Method to disconnect from SldWorks service"""
+        self.shutdown()
+
+    def open_part(self, file_path):
+        """Method opening part"""
+        if not self.sw:
+            logging.debug(f"Solidworks Object not found during saving.")
+            return False
+        arg_type = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 1)
+        arg_options = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 1)
+        errors = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+        warnings = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+        try:
+            self.sw.OpenDoc6(file_path, arg_type, arg_options, "", errors, warnings)
+            return True
+        except Exception as e:
+            return False
