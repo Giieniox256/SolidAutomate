@@ -14,7 +14,9 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QLabel,
     QTableWidget, QFileDialog,
+    QTextBrowser,
 )
+from PySide6.QtGui import QTextCursor
 
 from solid_automate.core.solidworks_service import SolidWorksService
 
@@ -63,6 +65,8 @@ class MainWindow(QMainWindow):
         self.lbl_actual_path = self.ui_main.findChild(QLabel, 'lb_actual_path')
         self.tb_main = self.ui_main.findChild(QTableWidget, 'tb_main')
         self.status_label = self.ui_main.findChild(QLabel, 'status_label')
+        self.tb_console = self.ui_main.findChild(QTextBrowser, 'tb_console')
+        self.console_manager = TextBrowserManager(self.tb_console)
 
         try:
             self.init_button_functions()
@@ -97,12 +101,14 @@ class MainWindow(QMainWindow):
         """Function to connect with solidworks"""
         self.status_label.setText("Connecting...")
         self.request_connect.emit()
+        self.console_manager.insert_text("Connected with SW")
         self.status_label.setText("Connected")
 
     def f_disconnect_solid(self) -> None:
         """Function to disconnect solidworks"""
         self.request_disconnect.emit()
         self.status_label.setText("Disconnected...")
+        self.console_manager.insert_text("Disconnected from SW")
 
     def f_settings(self) -> None:
         """Function open settings page"""
@@ -110,10 +116,12 @@ class MainWindow(QMainWindow):
 
     def f_select_dir(self) -> None:
         """Function open select dir page to choose a directory"""
+        self.console_manager.insert_text("Selecting directory...")
         self.selected_dir = QFileDialog.getExistingDirectory(self, "Select Directory")
         if self.selected_dir != "":
             display_text = f"{"/".join(self.selected_dir.split("/")[:2])}/.../{"/".join(self.selected_dir.split("/")[-2:])}"
             self.lbl_actual_path.setText(display_text)
+            self.console_manager.insert_text(f"True: Selected directory: {self.selected_dir}")
 
     def f_start_job(self) -> None:
         """Function start job: selected file will be generated"""
@@ -160,3 +168,24 @@ class SolidWorker(QObject):
     def disconnect_solidworks(self):
         """Function disconnects solidworks"""
         self.sw.shutdown()
+
+
+class TextBrowserManager:
+    """Console browser class"""
+
+    def __init__(self, browser: QTextBrowser):
+        self.browser = browser
+
+    def clear(self):
+        """Function clear text in text browser"""
+        self.browser.clear()
+
+    def insert_text(self, text):
+        """Function insert text in text browser"""
+        cursor = self.browser.textCursor()
+        cursor.movePosition(QTextCursor.Start)
+        cursor.insertText(text + "\n")
+
+        # set cursor on beginning and scroll max up
+        self.browser.setTextCursor(cursor)
+        self.browser.verticalScrollBar().setValue(0)

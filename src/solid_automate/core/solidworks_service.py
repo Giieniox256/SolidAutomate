@@ -40,15 +40,14 @@ class SolidWorksService:
             return False
 
     def disconnect(self):
+        """Method to disconnect from SldWorks service"""
         self.shutdown()
 
     def open_part(self, file_path):
         """Method opening part"""
-
         if not self.sw:
             logging.debug(f"Solidworks Object not found during saving.")
             return False
-
         arg_type = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 1)
         arg_options = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 1)
         errors = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
