@@ -41,15 +41,18 @@ class MainWindow(QMainWindow):
         self.ui_main = loader.load(ui_main_file)
         self.setCentralWidget(self.ui_main)
 
+        # vars
+        self.selected_dir = ""
+
         # load other tools
         self.thread = QThread()
         self.worker = SolidWorker()
         self.worker.moveToThread(self.thread)
+        self.worker.connected.connect(self.on_connected)
+        self.worker.disconnected.connect(self.on_disconnected)
         self.request_connect.connect(self.worker.connect_solidworks)
         self.request_disconnect.connect(self.worker.disconnect_solidworks)
         self.thread.start()
-
-        self.selected_dir = ""
 
         # setup tile
         self.setWindowTitle("SolidAutomate")
@@ -77,10 +80,25 @@ class MainWindow(QMainWindow):
             msg.setText("Error while loading application. Some functionality may not work.")
             msg.exec()
 
+    def on_connected(self):
+        """Function called when connection is established"""
+        self.status_label.setText("Connected")
+        self.console_manager.insert_text("Connected successful.")
+
+    def on_disconnected(self):
+        """Function called when disconnected"""
+        self.status_label.setText("Disconnected")
+        self.console_manager.insert_text("Disconnected successful.")
+        self.btn_connect_solidworks.setEnabled(True)
+
+    def on_error(self, error_msg):
+        """Function called when error_msg occurs"""
+        self.status_label.setText("Fail. Try to reconnect.")
+        self.console_manager.insert_text(f"Error occurred. {error_msg}")
+        self.btn_connect_solidworks.setEnabled(True)
+
     def init_button_functions(self) -> None:
-        """
-        Functions connect a button object with functions
-        """
+        """Functions connect a button object with functions"""
         # connect widgets with function
         if self.btn_connect_solidworks is not None:
             self.btn_connect_solidworks.clicked.connect(self.f_connect_solid)
@@ -99,16 +117,13 @@ class MainWindow(QMainWindow):
 
     def f_connect_solid(self) -> None:
         """Function to connect with solidworks"""
+        self.btn_connect_solidworks.setEnabled(False)
         self.status_label.setText("Connecting...")
         self.request_connect.emit()
-        self.console_manager.insert_text("Connected with SW")
-        self.status_label.setText("Connected")
 
     def f_disconnect_solid(self) -> None:
         """Function to disconnect solidworks"""
         self.request_disconnect.emit()
-        self.status_label.setText("Disconnected...")
-        self.console_manager.insert_text("Disconnected from SW")
 
     def f_settings(self) -> None:
         """Function open settings page"""
@@ -138,11 +153,15 @@ class MainWindow(QMainWindow):
 
 class SolidWorker(QObject):
     connected = Signal()
+    disconnected = Signal()
     saved = Signal()
     settings = Signal()
     select_dir = Signal()
-    error = Signal()
+    error = Signal(str)
     message = Signal()
+    job_progress = Signal(int, int)
+    job_done = Signal(int)
+    job_error = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -153,8 +172,15 @@ class SolidWorker(QObject):
         """Function connects solidworks"""
         try:
             self.sw.connect()
+            self.connected.emit()
         except Exception as e:
             self.error.emit(e)
+
+    @Slot()
+    def disconnect_solidworks(self):
+        """Function disconnects solidworks"""
+        self.sw.shutdown()
+        self.disconnected.emit()
 
     @Slot()
     def open_part(self, path):
@@ -163,11 +189,6 @@ class SolidWorker(QObject):
             self.message.emit(result)
         except Exception as e:
             self.error.emit(e)
-
-    @Slot()
-    def disconnect_solidworks(self):
-        """Function disconnects solidworks"""
-        self.sw.shutdown()
 
 
 class TextBrowserManager:
