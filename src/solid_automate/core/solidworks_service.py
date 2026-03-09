@@ -8,6 +8,7 @@ class SolidWorksService:
 
     def __init__(self):
         self.sw = None
+        self.swModel = None
         self.com_initialized = False
 
     def initialize(self):
@@ -57,3 +58,30 @@ class SolidWorksService:
             return True
         except Exception as e:
             return False
+
+    def get_active_document(self):
+        try:
+            self.swModel = self.sw.ActiveDoc
+            return self.swModel
+        except Exception as e:
+            return str(e)
+
+    def clear_active_document(self):
+        self.swModel = None
+
+    def save_drawing_to_pdf(self, file_path=None, file_name=None):
+        if not self.swModel.GetType == 3:
+            return False
+
+        swExportPDFData = self.sw.GetExportFileData(1)
+        swModelExt = self.swModel.Extension
+        arg2 = win32com.client.VARIANT(pythoncom.VT_BOOL, 0)
+        arg3 = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+        arg4 = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+        arg5 = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+
+        boolstatus = swModelExt.SaveAs(f"{file_path}\\{file_name}.pdf", arg2, arg3,
+                                       swExportPDFData, arg4, arg5)
+        if not boolstatus:
+            return False
+        return True

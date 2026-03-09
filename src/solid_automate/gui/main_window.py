@@ -55,6 +55,8 @@ class MainWindow(QMainWindow):
         self.request_disconnect.connect(self.worker.disconnect_solidworks)
         self.request_start_job.connect(self.worker.start_job)
         self.worker.error_creating_dir.connect(self.on_error_creating_dir)
+        self.worker.total_files.connect(self.on_receive_total_files)
+        self.worker.message.connect(self.on_message)
         self.thread.start()
 
         # setup tile
@@ -79,6 +81,7 @@ class MainWindow(QMainWindow):
 
         try:
             self.init_button_functions()
+            self.init_button_state()
         except RuntimeError:
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Critical)
@@ -107,6 +110,14 @@ class MainWindow(QMainWindow):
         """Function called when error_msg occurs"""
         self.console_manager.insert_text(f"Error occurred while creating dir's. {error_msg}")
 
+    def on_receive_total_files(self, total_files):
+        """Function called when total_files has been received"""
+        self.console_manager.insert_text(f"Total files to parse: {total_files}")
+
+    def on_message(self, message):
+        """Function called when a message is received"""
+        self.console_manager.insert_text(message)
+
     def get_files_to_produce(self) -> list:
         """Function called when get_files_to_produce is called. Return state of checkbox's"""
         return [self.cb_pdf.checkState(), self.cb_step.checkState(), self.cb_dxf.checkState()]
@@ -128,6 +139,12 @@ class MainWindow(QMainWindow):
             self.btn_stop_job.clicked.connect(self.f_stop_job)
         if self.progress_bar is not None:
             self.progress_bar.setValue(0)
+
+    def init_button_state(self):
+        """Function needed for initiate widgets depending on implementation"""
+        self.cb_pdf.setEnabled(True)
+        self.cb_step.setEnabled(False)
+        self.cb_dxf.setEnabled(False)
 
     def f_connect_solid(self) -> None:
         """Function to connect with solidworks"""
@@ -173,15 +190,19 @@ class SolidWorker(QObject):
     select_dir = Signal(str)
     error = Signal(str)
     error_creating_dir = Signal(str)
-    message = Signal()
+    message = Signal(str)
     job_progress = Signal(int, int)
     job_done = Signal(int)
     job_error = Signal(str)
+    total_files = Signal(int)
 
     def __init__(self):
         super().__init__()
         self.sw = SolidWorksService()
         self.proj_path = None
+        self.swModel = None
+        self.modelPath = None
+        self.modelName = None
 
     @Slot()
     def connect_solidworks(self):
@@ -218,19 +239,78 @@ class SolidWorker(QObject):
         except Exception as e:
             self.error.emit(e)
 
+    def get_solid_files(self, path) -> list:
+        """Function get solidworks files .sldprt, slddrw"""
+        _project_dir = Path(path)
+        _parts = [p for p in _project_dir.glob("*.sldprt")]
+        _drawings = [d for d in _project_dir.glob("*.slddrw")]
+        return [_parts, _drawings]
+
     @Slot()
     def start_job(self, path: Path, types_to_produce: list):
         """Function start job: selected file type will be generated"""
         if not self.check_doc_dir_exist(path):
             self.error.emit(f"Document dir not created: {path}")
             return
+        parts, drawings = self.get_solid_files(path)
+        total_files = len(parts) + len(drawings)
+        self.total_files.emit(total_files)
+        _sub_dir_doc = "Dokumentacja"
+        _pdf_dir = Path(path) / _sub_dir_doc / "PDF"
+        _step_dir = Path(path) / _sub_dir_doc / "STEP"
+        _dxf_dir = Path(path) / _sub_dir_doc / "DXF"
+        if total_files == 0:
+            self.handle_active_document(types_to_produce)
+        else:
+            self.handle_multiple_files()
+        self.clear_active_document()
+
+    def handle_active_document(self, types_to_produce):
+        """Function handle active document"""
+        self.get_active_document()
         _pdf, _step, _dxf = types_to_produce
         if _pdf == Qt.CheckState.Checked:
-            print("make PDF")
+            self.message.emit("Preparing PDF")
+            self.save_drawing_to_pdf()
         if _step == Qt.CheckState.Checked:
-            print("make Step")
+            self.message.emit("Preparing STEP")
         if _dxf == Qt.CheckState.Checked:
-            print("make DXF")
+            self.message.emit("Preparing DXF")
+
+    def handle_multiple_files(self):
+        """Function handle multiple files"""
+        raise NotImplementedError
+
+    def get_active_document(self):
+        """Functions get active model from solidworks"""
+        result = self.sw.get_active_document()
+        self.modelPath = result.GetPathName
+        self.modelName = str(result.GetTitle.split(".")[0])
+        self.message.emit(self.modelPath)
+        self.message.emit(self.modelName)
+
+    def clear_active_document(self):
+        """Function clear active model from solidworks"""
+        self.modelPath = None
+        self.modelName = None
+
+    def save_drawing_to_pdf(self):
+        """Functions save solidworks drawing to PDF"""
+        save_pdf_at = self.parse_raw_path(self.modelPath)
+        pdf_name = self.modelName.split("-")[0]
+        pdf_name = pdf_name.replace(" ", "_")
+        if pdf_name.endswith("_"):
+            pdf_name = pdf_name[:-1]
+        result = self.sw.save_drawing_to_pdf(file_path=save_pdf_at, file_name=pdf_name)
+        _msg = "++ PDF saved successfully" if result else f"-- PDF not saved for {self.modelName}."
+        self.message.emit(_msg)
+
+    @staticmethod
+    def parse_raw_path(raw_path):
+        """Function parse raw path"""
+        pth = raw_path.split("\\")[:-1]
+        pth = Path("\\".join(pth)) / "Dokumentacja" / "PDF"
+        return pth
 
 
 class TextBrowserManager:
