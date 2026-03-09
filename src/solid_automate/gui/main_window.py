@@ -14,8 +14,10 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QProgressBar,
     QLabel,
-    QTableWidget, QFileDialog,
-    QTextBrowser, QCheckBox,
+    QTableWidget,
+    QFileDialog,
+    QTextBrowser,
+    QCheckBox,
 )
 
 from solid_automate.core.solidworks_service import SolidWorksService
@@ -143,8 +145,8 @@ class MainWindow(QMainWindow):
     def init_button_state(self):
         """Function needed for initiate widgets depending on implementation"""
         self.cb_pdf.setEnabled(True)
-        self.cb_step.setEnabled(False)
-        self.cb_dxf.setEnabled(False)
+        self.cb_step.setEnabled(True)
+        self.cb_dxf.setEnabled(True)
 
     def f_connect_solid(self) -> None:
         """Function to connect with solidworks"""
@@ -165,7 +167,7 @@ class MainWindow(QMainWindow):
         self.console_manager.insert_text("Selecting directory...")
         self.selected_dir = QFileDialog.getExistingDirectory(self, "Select Directory")
         if self.selected_dir != "":
-            display_text = f"{"/".join(self.selected_dir.split("/")[:2])}/.../{"/".join(self.selected_dir.split("/")[-2:])}"
+            display_text = f"{" / ".join(self.selected_dir.split(" / ")[:2])}/.../{" / ".join(self.selected_dir.split(" / ")[-2:])}"
             self.lbl_actual_path.setText(display_text)
             self.console_manager.insert_text(f"True: Selected directory: {self.selected_dir}")
 
@@ -272,7 +274,7 @@ class SolidWorker(QObject):
         self.clear_active_document()
 
     def handle_active_document(self, types_to_produce):
-        """Function handle active document"""
+        """Functions handle active document, saving all necessary files"""
         self.get_active_document()
         _pdf, _step, _dxf = types_to_produce
         if _pdf == Qt.CheckState.Checked:
@@ -280,17 +282,24 @@ class SolidWorker(QObject):
             self.save_drawing_to_pdf()
         if _step == Qt.CheckState.Checked:
             self.message.emit("Preparing STEP")
+            self.save_part_to_step()
         if _dxf == Qt.CheckState.Checked:
             self.message.emit("Preparing DXF")
+            self.save_metal_sheet_from_part()
 
     def handle_multiple_files(self, types_to_produce, parts: list[Path], drawings: list[Path]) -> None:
         """Function handle multiple files"""
-        if len(parts) > 0:
+        _pdf, _step, _dxf = types_to_produce
+        if len(parts) > 0 and _step == Qt.CheckState.Checked or _dxf == Qt.CheckState.Checked:
             for part in parts:
                 self.open_part(str(part))
-        if len(drawings) > 0:
+                self.handle_active_document(types_to_produce)
+                self.sw.close_doc(str(part))
+        if len(drawings) > 0 and _pdf == Qt.CheckState.Checked:
             for drawing in drawings:
                 self.open_drawing(str(drawing))
+                self.handle_active_document(types_to_produce)
+                self.sw.close_doc(str(drawing))
 
     def get_active_document(self):
         """Functions get active model from solidworks"""
@@ -307,7 +316,7 @@ class SolidWorker(QObject):
 
     def save_drawing_to_pdf(self):
         """Functions save solidworks drawing to PDF"""
-        save_pdf_at = self.parse_raw_path(self.modelPath)
+        save_pdf_at = self.parse_raw_path(self.modelPath) / "PDF"
         pdf_name = self.modelName.split("-")[0]
         pdf_name = pdf_name.replace(" ", "_")
         if pdf_name.endswith("_"):
@@ -316,11 +325,25 @@ class SolidWorker(QObject):
         _msg = "++ PDF saved successfully" if result else f"-- PDF not saved for {self.modelName}."
         self.message.emit(_msg)
 
+    def save_part_to_step(self):
+        """Functions save solidworks part to STEP"""
+        save_part_at = self.parse_raw_path(self.modelPath) / "STEP"
+        result = self.sw.save_part_to_step(file_path=save_part_at, file_name=self.modelName)
+        _msg = "++ STEP saved successfully" if result else f"-- STEP not saved for {self.modelName}."
+        self.message.emit(_msg)
+
+    def save_metal_sheet_from_part(self):
+        """Functions save solidworks part to DXF"""
+        save_dxf_at = self.parse_raw_path(self.modelPath) / "DXF"
+        result = self.sw.save_dxf_metal_sheet(file_path=save_dxf_at, file_name=self.modelName)
+        _msg = "++ DXF saved successfully" if result else f"-- DXF not saved for {self.modelName}"
+        self.message.emit(_msg)
+
     @staticmethod
     def parse_raw_path(raw_path):
         """Function parse raw path"""
         pth = raw_path.split("\\")[:-1]
-        pth = Path("\\".join(pth)) / "Dokumentacja" / "PDF"
+        pth = Path("\\".join(pth)) / "Dokumentacja"
         return pth
 
 
