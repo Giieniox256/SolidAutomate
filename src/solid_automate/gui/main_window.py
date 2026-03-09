@@ -234,8 +234,13 @@ class SolidWorker(QObject):
 
     def open_part(self, path):
         try:
-            result = self.sw.open_part(path)
-            self.message.emit(result)
+            self.sw.open_part(path)
+        except Exception as e:
+            self.error.emit(e)
+
+    def open_drawing(self, path):
+        try:
+            self.sw.open_drawing(path)
         except Exception as e:
             self.error.emit(e)
 
@@ -253,6 +258,7 @@ class SolidWorker(QObject):
             self.error.emit(f"Document dir not created: {path}")
             return
         parts, drawings = self.get_solid_files(path)
+        self.message.emit(f"Found {len(parts)}-parts, {len(drawings)}-drawing files")
         total_files = len(parts) + len(drawings)
         self.total_files.emit(total_files)
         _sub_dir_doc = "Dokumentacja"
@@ -262,7 +268,7 @@ class SolidWorker(QObject):
         if total_files == 0:
             self.handle_active_document(types_to_produce)
         else:
-            self.handle_multiple_files()
+            self.handle_multiple_files(types_to_produce, parts, drawings)
         self.clear_active_document()
 
     def handle_active_document(self, types_to_produce):
@@ -277,9 +283,14 @@ class SolidWorker(QObject):
         if _dxf == Qt.CheckState.Checked:
             self.message.emit("Preparing DXF")
 
-    def handle_multiple_files(self):
+    def handle_multiple_files(self, types_to_produce, parts: list[Path], drawings: list[Path]) -> None:
         """Function handle multiple files"""
-        raise NotImplementedError
+        if len(parts) > 0:
+            for part in parts:
+                self.open_part(str(part))
+        if len(drawings) > 0:
+            for drawing in drawings:
+                self.open_drawing(str(drawing))
 
     def get_active_document(self):
         """Functions get active model from solidworks"""

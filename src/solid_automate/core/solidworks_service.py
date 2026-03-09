@@ -47,17 +47,20 @@ class SolidWorksService:
     def open_part(self, file_path):
         """Method opening part"""
         if not self.sw:
-            logging.debug(f"Solidworks Object not found during saving.")
             return False
         arg_type = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 1)
         arg_options = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 1)
         errors = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
         warnings = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
-        try:
-            self.sw.OpenDoc6(file_path, arg_type, arg_options, "", errors, warnings)
-            return True
-        except Exception as e:
-            return False
+        self.sw.OpenDoc6(file_path, arg_type, arg_options, "", errors, warnings)
+
+    def open_drawing(self, file_path):
+        """Method opening drawing"""
+        arg_type = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 3)
+        arg_options = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 1)
+        errors = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+        warnings = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+        self.sw.OpenDoc6(file_path, arg_type, arg_options, "", errors, warnings)
 
     def get_active_document(self):
         try:
