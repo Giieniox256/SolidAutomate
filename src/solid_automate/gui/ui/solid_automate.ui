@@ -338,6 +338,13 @@
           <item>
            <widget class="QTextBrowser" name="tb_console"/>
           </item>
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>SolidAutomate © 2026 Piotr Kowalik (@Giieniox256)</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
