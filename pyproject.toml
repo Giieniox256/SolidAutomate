@@ -19,6 +19,7 @@ yapf = "0.43.0"
 pyright = "1.1.408"
 pywin32 = "311"
 pytest = "9.0.2"
+cx-freeze = "8.6.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

@@ -59,6 +59,7 @@ class MainWindow(QMainWindow):
         self.worker.error_creating_dir.connect(self.on_error_creating_dir)
         self.worker.total_files.connect(self.on_receive_total_files)
         self.worker.message.connect(self.on_message)
+        self.worker.job_progress.connect(self.on_job_progress)
         self.thread.start()
 
         # setup tile
@@ -119,6 +120,11 @@ class MainWindow(QMainWindow):
     def on_message(self, message):
         """Function called when a message is received"""
         self.console_manager.insert_text(message)
+
+    def on_job_progress(self, act, total):
+        """Function called when job progress is received"""
+        _progress = int((act / total) * 100)
+        self.progress_bar.setValue(_progress)
 
     def get_files_to_produce(self) -> list:
         """Function called when get_files_to_produce is called. Return state of checkbox's"""
@@ -270,7 +276,9 @@ class SolidWorker(QObject):
         if total_files == 0:
             self.handle_active_document(types_to_produce)
         else:
+            self.job_progress.emit(0, total_files)
             self.handle_multiple_files(types_to_produce, parts, drawings)
+        self.job_progress.emit(100, 100)
         self.clear_active_document()
 
     def handle_active_document(self, types_to_produce):
@@ -290,16 +298,23 @@ class SolidWorker(QObject):
     def handle_multiple_files(self, types_to_produce, parts: list[Path], drawings: list[Path]) -> None:
         """Function handle multiple files"""
         _pdf, _step, _dxf = types_to_produce
+        _total_files = len(parts) + len(drawings)
+        _done = 0
+        self.job_progress.emit(_done,_total_files)
         if len(parts) > 0 and _step == Qt.CheckState.Checked or _dxf == Qt.CheckState.Checked:
             for part in parts:
                 self.open_part(str(part))
                 self.handle_active_document(types_to_produce)
                 self.sw.close_doc(str(part))
+                _done += 1
+                self.job_progress.emit(_done,_total_files)
         if len(drawings) > 0 and _pdf == Qt.CheckState.Checked:
             for drawing in drawings:
                 self.open_drawing(str(drawing))
                 self.handle_active_document(types_to_produce)
                 self.sw.close_doc(str(drawing))
+                _done += 1
+                self.job_progress.emit(_done,_total_files)
 
     def get_active_document(self):
         """Functions get active model from solidworks"""
