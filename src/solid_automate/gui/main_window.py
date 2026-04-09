@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal, Slot, QThread, Qt
-from PySide6.QtGui import QTextCursor
+from PySide6.QtGui import QTextCursor, QIcon
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -22,8 +22,13 @@ from PySide6.QtWidgets import (
 
 from solid_automate.core.solidworks_service import SolidWorksService
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logging.basicConfig(
+    filename='app.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow):
@@ -36,9 +41,16 @@ class MainWindow(QMainWindow):
         super().__init__()
         loader = QUiLoader()
         if getattr(sys, 'frozen', False):
-            raise Exception("Setup path if app is packed")
+            ui_main_file = Path(
+                __file__).resolve().parent / "ui" / "solid_automate.ui"
+            logger.info(ui_main_file)
         else:
             ui_main_file = Path(__file__).resolve().parent / "ui" / "solid_automate.ui"
+
+        # load icon
+        icon_pth = Path(__file__).resolve().parent / "assets" / "Sautomate_icon.ico"
+        print(icon_pth, "icon path")
+        self.setWindowIcon(QIcon(str(icon_pth)))
 
         # load ui from .ui
         self.ui_main = loader.load(ui_main_file)
@@ -211,6 +223,7 @@ class SolidWorker(QObject):
         self.swModel = None
         self.modelPath = None
         self.modelName = None
+        self.abort = False
 
     @Slot()
     def connect_solidworks(self):
@@ -300,21 +313,21 @@ class SolidWorker(QObject):
         _pdf, _step, _dxf = types_to_produce
         _total_files = len(parts) + len(drawings)
         _done = 0
-        self.job_progress.emit(_done,_total_files)
+        self.job_progress.emit(_done, _total_files)
         if len(parts) > 0 and _step == Qt.CheckState.Checked or _dxf == Qt.CheckState.Checked:
             for part in parts:
                 self.open_part(str(part))
                 self.handle_active_document(types_to_produce)
                 self.sw.close_doc(str(part))
                 _done += 1
-                self.job_progress.emit(_done,_total_files)
+                self.job_progress.emit(_done, _total_files)
         if len(drawings) > 0 and _pdf == Qt.CheckState.Checked:
             for drawing in drawings:
                 self.open_drawing(str(drawing))
                 self.handle_active_document(types_to_produce)
                 self.sw.close_doc(str(drawing))
                 _done += 1
-                self.job_progress.emit(_done,_total_files)
+                self.job_progress.emit(_done, _total_files)
 
     def get_active_document(self):
         """Functions get active model from solidworks"""
