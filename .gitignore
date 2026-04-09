@@ -1,3 +1,6 @@
 .idea
 .venv
 /tests/test_3d_models/Dokumentacja/*
+build
+src/solidautomate.egg-info
+app.log

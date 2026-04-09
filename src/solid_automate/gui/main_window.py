@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal, Slot, QThread, Qt, QCoreApplication
-from PySide6.QtGui import QTextCursor
+from PySide6.QtGui import QTextCursor, QIcon
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -22,8 +22,13 @@ from PySide6.QtWidgets import (
 
 from solid_automate.core.solidworks_service import SolidWorksService
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logging.basicConfig(
+    filename='app.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow):
@@ -37,9 +42,16 @@ class MainWindow(QMainWindow):
         super().__init__()
         loader = QUiLoader()
         if getattr(sys, 'frozen', False):
-            raise Exception("Setup path if app is packed")
+            ui_main_file = Path(
+                __file__).resolve().parent / "ui" / "solid_automate.ui"
+            logger.info(ui_main_file)
         else:
             ui_main_file = Path(__file__).resolve().parent / "ui" / "solid_automate.ui"
+
+        # load icon
+        icon_pth = Path(__file__).resolve().parent / "assets" / "Sautomate_icon.ico"
+        print(icon_pth, "icon path")
+        self.setWindowIcon(QIcon(str(icon_pth)))
 
         # load ui from .ui
         self.ui_main = loader.load(ui_main_file)
