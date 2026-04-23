@@ -1,6 +1,6 @@
 [project]
 name = "solidautomate"
-version = "0.1.0"
+version = "0.3.0"
 description = ""
 authors = [
     { name = "kowaliczek_256", email = "kowalik.piotr256@gmail.com" }

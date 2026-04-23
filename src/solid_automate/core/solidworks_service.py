@@ -77,7 +77,7 @@ class SolidWorksService:
         swExportPDFData = self.sw.GetExportFileData(1)
         swModelExt = self.swModel.Extension
         arg2 = win32com.client.VARIANT(pythoncom.VT_BOOL, 0)
-        arg3 = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+        arg3 = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 1)
         arg4 = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
         arg5 = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
 
@@ -86,7 +86,7 @@ class SolidWorksService:
 
     def save_part_to_step(self, file_path=None, file_name=None):
         if self.swModel.GetType == 1 or self.swModel.GetType == 2:
-            arg3 = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+            arg3 = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 1)
             arg4 = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 2)
             success = self.swModel.SaveAs3(f"{file_path}\\{file_name}.STEP", arg3, arg4)
             return True if success == 0 else False
